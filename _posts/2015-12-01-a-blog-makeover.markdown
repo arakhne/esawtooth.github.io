@@ -31,7 +31,9 @@ either anytime soon. The good thing about the Jekyll move was that I was
 simply able to copy over the old markdown files from the source/_posts
 directory to the _posts directory of the jekyll tree. The only thing
 that required some work was that the default markdown parser used by
-jekyll used a different way of quoting code.
+jekyll used a different way of quoting code. I've added the facebook
+comment plugin as well. May rethink that further down the line, but for
+now, I don't see any issues with it other than the login constraint.
 
 The email was a simple matter of creating a new Zoho Mail account and
 aliasing that to my current Gmail account. So now, all mail from my
@@ -43,6 +45,5 @@ old Gmail interface with the clunky popups. Hopefully they will fix that
 soon. Particularly if they ever decide to shutdown the old interface as
 they are in the habit of usually doing.
 
-Overall I am positive about the move now. Things feel neater, though
-I've still got to figure out how to add commenting in Jekyll. I'll
-update this post once that's done.
+Phew. Things simply feel neater now. Let's see if this inspires me to
+post more often.
