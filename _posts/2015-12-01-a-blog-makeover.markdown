@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "A Blog Makeover"
-date: 2015-09-06 16:44:51 +0530
+date: 2015-12-01 11:44:51 +0530
 comments: true
 categories: blog tech
 ---
