@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Hoare Partitioning and Pivot Selection</title>
+        <link rel="stylesheet" href="/theme/css/main.css" />
+
+        <!--[if IE]>
+            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">Arbit Musings </a></h1>
+                <nav><ul>
+                    <li class="active"><a href="/category/algorithms.html">algorithms</a></li>
+                    <li><a href="/category/blog-tech.html">blog tech</a></li>
+                    <li><a href="/category/data-analytics.html">data analytics</a></li>
+                    <li><a href="/category/tech.html">tech</a></li>
+                    <li><a href="/category/tech-general.html">tech general</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="/hoare-pivot.html" rel="bookmark"
+           title="Permalink to Hoare Partitioning and Pivot Selection">Hoare Partitioning and Pivot Selection</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2015-09-06T16:44:00+05:30">
+                Published: Sun 06 September 2015
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="/author/rohit-jain.html">Rohit Jain</a>
+        </address>
+<p>In <a href="/category/algorithms.html">algorithms</a>.</p>
+<p>tags: <a href="/tag/algorithms.html">algorithms</a> </p>
+</footer><!-- /.post-info -->      <p>Quicksort is a remarkably flexible algorithm with several
+variations. Here, I wanted to write about the Hoare partitioning method,
+in particular, about the special choice of its pivot as the leftmost
+element. First, lets quickly write down the partitioning algorithm from
+CLRS <a href="http://clrs.skanev.com/07/problems/01.html">exercise 7.1</a>.</p>
+<p _="%" endhighlight="endhighlight">{% highlight python %}
+    def Hoare_Partition(A, p, r):
+        x = A[p]
+        i = p - 1
+        j = r + 1
+        while True:
+            while True:
+                j = j - 1
+                if A[j] &lt;= x:
+                    break
+            while True:
+                i = i + 1
+                if A[i] &gt;= x:
+                    break
+            if i &lt; j:
+                A[i], A[j] = A[j], A[i]
+            else:
+                return j      <br />
+    # Output Assertion: A[p..j] &lt;= x and A[j+1..r] &gt;= x
+    # in case we use last element to pivot</p>
+<p>This partitioning can be called from quicksort as </p>
+<p _="%" endhighlight="endhighlight">{% highlight python %}
+    def Quick_Sort(A, p, r):
+        if p &lt; r:
+            q = Hoare_Partition(A, p, r)
+            Quick_Sort(A, p, q)
+            Quick_Sort(A, q + 1, r)</p>
+<p>Here, I have translated the algorithm into a simple python function. The
+only departure from the original algorithm are my implementations of the
+repeat-until loops as unconditional while loops that break. The
+parameter <code>A</code> is the array which is 0-indexed, though it does not really
+matter here. <code>p</code> and <code>r</code> are the boundaries of the sub-array which we
+wish to partition. Now, if one looks at the function definition, the
+pivot is used for comparisons of the array elements. However, most of
+the code looks to be pretty symmetric, when we compare the left and
+right endpoints of the sub-array. Essentially, in the code we are not
+"favouring" any particular endpoint, and repeating the same steps for
+both of them. The only place where there is some bias, is in the <code>return
+j</code> statement, wherein we return the current value of the right endpoint
+index.</p>
+<p>This led me to try using <code>A[r]</code> as the pivot. However, when I simply
+chose this element as the pivot, the algorithm did not terminate and
+went into an infinite loop with my test case. Some looking revealed that
+this was because the algorithm was not able to reduce the size of the
+partitions. Essentially, the array of size n, in the first recursion
+itself, was getting "partitioned" into two sub-arrays: <code>[0..n]</code> and
+<code>[n+1..n]</code>. This is obviously an error, as the second subarray is
+meaningless, and the first subarray is the same as the input itself!
+Clearly, the partitioning is sensitive to the positioning of the
+pivot. This is corroborated by CLRS exercise 7.1 where it is proved that
+if <code>r - p &gt;= 2</code>, then <code>p &lt;= j &lt; r</code>. The strict inequality between j and
+r breaks down if we use the last element as the pivot. In fact, if we
+peep into the <a href="http://clrs.skanev.com/07/problems/01.html">proof</a> of
+this ordering (which, in turn is required to prove the correctness of
+the partitioning), it assumes that the first element is the pivot. All
+this suggests that the recursive calls made in <code>Quick_Sort</code> should to be
+altered to,</p>
+<p _="%" endhighlight="endhighlight">{% highlight python %}
+    def Quick_Sort_modded(A, p, r):
+        if p &lt; r:
+            q = Hoare_Partition(A, p, r)
+            self.Quick_Sort(A, p, q - 1)
+            self.Quick_Sort(A, q, r)</p>
+<p>However, in order to do this, we must depend upon an altered output
+assertion of Hoare_Partition that looks like `A[p..i-1] &lt;= x and A[i..r]</p>
+<blockquote>
+<p>= x`. Symmetry in the function suggests that we should return i instead
+of j, and this can be further proved as well by formulating an
+invariant. So, the modified Hoare Partitioning should look like</p>
+</blockquote>
+<p _="%" endhighlight="endhighlight">{% highlight python %}
+    def Hoare_Partition_modded(A, p, r):
+        x = A[r]
+        i = p - 1
+        j = r + 1
+        while True:
+            while True:
+                j = j - 1
+                if A[j] &lt;= x:
+                    break
+            while True:
+                i = i + 1
+                if A[i] &gt;= x:
+                    break
+            if i &lt; j:
+                A[i], A[j] = A[j], A[i]
+            else:
+                return i
+    # Output Assertion: A[p..i-1] &lt;= x and A[i..r] &gt;= x
+    # in case we use last element to pivot</p>
+<p>So, this partitioning is pretty rigid in terms of the choice of the
+pivot. Hence, if we wish to randomize the pivot selection, we would have
+to do that in the <code>Quick_Sort_modded</code> call itself, by swapping the
+chosen pivot with the first/last element of the array.</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>blogroll</h2>
+                        <ul>
+                            <li><a href="http://getpelican.com/">Pelican</a></li>
+                            <li><a href="http://python.org/">Python.org</a></li>
+                            <li><a href="http://jinja.pocoo.org/">Jinja2</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>
